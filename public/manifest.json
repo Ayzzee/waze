@@ -1,0 +1,37 @@
+{
+  "name": "HiKe - Votre compagnon de randonnée",
+  "short_name": "HiKe",
+  "description": "Découvrez, planifiez et partagez vos randonnées avec HiKe",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#10b981",
+  "theme_color": "#10b981",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2310b981'/><path d='M32 16l8 12-8 20-8-20z' fill='white'/><circle cx='32' cy='28' r='4' fill='%2310b981'/></svg>",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='36' fill='%2310b981'/><path d='M96 48l24 36-24 60-24-60z' fill='white'/><circle cx='96' cy='84' r='12' fill='%2310b981'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%2310b981'/><path d='M256 128l64 96-64 160-64-160z' fill='white'/><circle cx='256' cy='224' r='32' fill='%2310b981'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["sports", "travel", "navigation"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 375 812'><rect width='375' height='812' fill='%23f0fdf4'/><rect width='375' height='120' fill='%2310b981'/><text x='20' y='60' fill='white' font-size='24' font-family='Arial'>HiKe</text></svg>",
+      "sizes": "375x812",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ]
+}

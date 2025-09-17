@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiKe - Votre compagnon de randonnée</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <meta name="theme-color" content="#10b981">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="hike-app">
+        <!-- Header avec gradient nature -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-main">HiKe</span>
+                        <span class="logo-sub">Explore & Discover</span>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="action-btn weather-btn" onclick="checkWeather()">
+                        <i class="fas fa-cloud-sun"></i>
+                    </button>
+                    <button class="action-btn search-btn" onclick="toggleTrailSearch()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="action-btn menu-btn" onclick="toggleMainMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Barre de recherche de sentiers -->
+            <div id="trail-search" class="trail-search hidden">
+                <div class="search-container">
+                    <div class="search-filters">
+                        <select id="difficulty-filter" class="filter-select">
+                            <option value="">Toutes difficultés</option>
+                            <option value="easy">Facile 🟢</option>
+                            <option value="moderate">Modéré 🟡</option>
+                            <option value="hard">Difficile 🔴</option>
+                        </select>
+                        <select id="region-filter" class="filter-select">
+                            <option value="">Toutes régions</option>
+                            <option value="alpes">Alpes</option>
+                            <option value="pyrénées">Pyrénées</option>
+                            <option value="vosges">Vosges</option>
+                            <option value="corse">Corse</option>
+                        </select>
+                        <input type="number" id="distance-filter" placeholder="Distance max (km)" class="filter-input">
+                    </div>
+                    <button class="search-trails-btn" onclick="searchTrails()">
+                        <i class="fas fa-search"></i>
+                        Rechercher sentiers
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Carte interactive principale -->
+        <main class="map-section">
+            <div id="hike-map" class="interactive-map"></div>
+            
+            <!-- Contrôles de carte naturels -->
+            <div class="map-controls">
+                <button class="map-control-btn location-btn" onclick="centerOnLocation()" title="Ma position">
+                    <i class="fas fa-location-arrow"></i>
+                </button>
+                <button class="map-control-btn layers-btn" onclick="toggleMapLayers()" title="Couches de carte">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+                <button class="map-control-btn weather-layer-btn" onclick="toggleWeatherLayer()" title="Météo">
+                    <i class="fas fa-cloud-sun"></i>
+                </button>
+                <button class="map-control-btn trails-btn" onclick="showNearbyTrails()" title="Sentiers proches">
+                    <i class="fas fa-route"></i>
+                </button>
+            </div>
+
+            <!-- Widget météo flottant -->
+            <div id="weather-widget" class="weather-widget hidden">
+                <div class="weather-header">
+                    <i class="weather-icon fas fa-sun"></i>
+                    <span class="weather-temp">15°C</span>
+                    <button class="close-weather" onclick="closeWeatherWidget()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="weather-details">
+                    <div class="weather-item">
+                        <i class="fas fa-eye"></i>
+                        <span>Visibilité: <span id="visibility">10km</span></span>
+                    </div>
+                    <div class="weather-item">
+                        <i class="fas fa-wind"></i>
+                        <span>Vent: <span id="wind-speed">8km/h</span></span>
+                    </div>
+                    <div class="weather-item">
+                        <i class="fas fa-tint"></i>
+                        <span>Humidité: <span id="humidity">65%</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel d'informations de sentier -->
+            <div id="trail-info-panel" class="trail-panel hidden">
+                <div class="panel-header">
+                    <h3 id="trail-name">Nom du sentier</h3>
+                    <button class="close-panel" onclick="closeTrailPanel()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="panel-content">
+                    <div class="trail-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-route"></i>
+                            <div>
+                                <span class="stat-value" id="trail-distance">0 km</span>
+                                <span class="stat-label">Distance</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <span class="stat-value" id="trail-duration">0h</span>
+                                <span class="stat-label">Durée</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-mountain"></i>
+                            <div>
+                                <span class="stat-value" id="trail-elevation">+0m</span>
+                                <span class="stat-label">Dénivelé</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <span class="stat-value" id="trail-rating">0.0</span>
+                                <span class="stat-label">Note</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trail-description">
+                        <p id="trail-desc">Description du sentier...</p>
+                    </div>
+                    <div class="trail-actions">
+                        <button class="action-btn-primary start-hike-btn" onclick="startHike()">
+                            <i class="fas fa-play"></i>
+                            Démarrer la randonnée
+                        </button>
+                        <button class="action-btn-secondary save-trail-btn" onclick="saveTrail()">
+                            <i class="fas fa-bookmark"></i>
+                            Sauvegarder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Navigation bottom (style mobile nature) -->
+        <nav class="bottom-navigation">
+            <button class="nav-item active" data-tab="explore" onclick="switchMainTab('explore')">
+                <i class="fas fa-compass"></i>
+                <span>Explorer</span>
+            </button>
+            <button class="nav-item" data-tab="plan" onclick="switchMainTab('plan')">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Planifier</span>
+            </button>
+            <button class="nav-item" data-tab="discover" onclick="switchMainTab('discover')">
+                <i class="fas fa-camera"></i>
+                <span>Découvrir</span>
+            </button>
+            <button class="nav-item" data-tab="profile" onclick="switchMainTab('profile')">
+                <i class="fas fa-user-astronaut"></i>
+                <span>Profil</span>
+            </button>
+        </nav>
+
+        <!-- Sheets pour chaque section -->
+        
+        <!-- Sheet Planification -->
+        <div id="plan-sheet" class="bottom-sheet hidden">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h2><i class="fas fa-map-marked-alt"></i> Planifier une randonnée</h2>
+                <button class="close-sheet" onclick="closeAllSheets()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sheet-content">
+                <div class="planning-form">
+                    <div class="form-group">
+                        <label>Point de départ</label>
+                        <div class="location-input-group">
+                            <input type="text" id="start-point" placeholder="Où voulez-vous commencer ?">
+                            <button class="location-btn" onclick="getCurrentLocationForPlanning('start')">
+                                <i class="fas fa-crosshairs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <div class="location-input-group">
+                            <input type="text" id="end-point" placeholder="Où voulez-vous aller ?">
+                            <button class="location-btn" onclick="getPopularDestinations()">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preferences-grid">
+                        <div class="pref-item">
+                            <label>Difficulté souhaitée</label>
+                            <select id="preferred-difficulty">
+                                <option value="">Peu importe</option>
+                                <option value="easy">Facile</option>
+                                <option value="moderate">Modéré</option>
+                                <option value="hard">Difficile</option>
+                            </select>
+                        </div>
+                        <div class="pref-item">
+                            <label>Distance maximale</label>
+                            <input type="number" id="max-distance" placeholder="km" min="1" max="50">
+                        </div>
+                    </div>
+                    
+                    <button class="plan-hike-btn" onclick="planCustomHike()">
+                        <i class="fas fa-magic"></i>
+                        Créer ma randonnée
+                    </button>
+                </div>
+                
+                <div id="planned-hike-result" class="planned-result hidden">
+                    <!-- Résultat de planification affiché ici -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sheet Découvertes -->
+        <div id="discover-sheet" class="bottom-sheet hidden">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h2><i class="fas fa-camera"></i> Partager une découverte</h2>
+                <button class="close-sheet" onclick="closeAllSheets()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sheet-content">
+                <div class="discovery-types">
+                    <button class="discovery-type-btn" data-type="wildlife" onclick="selectDiscoveryType('wildlife')">
+                        <i class="fas fa-paw"></i>
+                        <span>Faune</span>
+                    </button>
+                    <button class="discovery-type-btn" data-type="viewpoint" onclick="selectDiscoveryType('viewpoint')">
+                        <i class="fas fa-binoculars"></i>
+                        <span>Point de vue</span>
+                    </button>
+                    <button class="discovery-type-btn" data-type="waterfall" onclick="selectDiscoveryType('waterfall')">
+                        <i class="fas fa-tint"></i>
+                        <span>Cascade</span>
+                    </button>
+                    <button class="discovery-type-btn" data-type="cave" onclick="selectDiscoveryType('cave')">
+                        <i class="fas fa-mountain"></i>
+                        <span>Grotte</span>
+                    </button>
+                    <button class="discovery-type-btn" data-type="flora" onclick="selectDiscoveryType('flora')">
+                        <i class="fas fa-leaf"></i>
+                        <span>Flore</span>
+                    </button>
+                    <button class="discovery-type-btn" data-type="danger" onclick="selectDiscoveryType('danger')">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Danger</span>
+                    </button>
+                </div>
+                
+                <div id="discovery-form" class="discovery-form hidden">
+                    <div class="form-group">
+                        <label>Titre de votre découverte</label>
+                        <input type="text" id="discovery-title" placeholder="Ex: Famille de cerfs observée">
+                    </div>
+                    <div class="form-group">
+                        <label>Description (optionnel)</label>
+                        <textarea id="discovery-description" placeholder="Ajoutez des détails sur votre découverte..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Ajouter une photo</label>
+                        <input type="file" id="discovery-photo" accept="image/*" capture="environment">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-cancel" onclick="cancelDiscovery()">Annuler</button>
+                        <button class="btn-share" onclick="shareDiscovery()">
+                            <i class="fas fa-share"></i>
+                            Partager
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Liste des découvertes récentes -->
+                <div class="recent-discoveries">
+                    <h3>Découvertes récentes</h3>
+                    <div id="discoveries-list" class="discoveries-grid">
+                        <!-- Chargé dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sheet Profil -->
+        <div id="profile-sheet" class="bottom-sheet hidden">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h2><i class="fas fa-user-astronaut"></i> Mon profil randonneur</h2>
+                <button class="close-sheet" onclick="closeAllSheets()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sheet-content">
+                <div class="profile-hero">
+                    <div class="avatar-container">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-astronaut"></i>
+                        </div>
+                        <div class="level-badge" id="user-level-badge">
+                            Apprenti Randonneur
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <h3 id="hiker-name">Randonneur</h3>
+                        <p id="hiker-experience">Débutant</p>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-number" id="total-distance">0</span>
+                            <span class="stat-unit">km parcourus</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-mountain"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-number" id="total-elevation">0</span>
+                            <span class="stat-unit">m dénivelé</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-number" id="hikes-completed">0</span>
+                            <span class="stat-unit">randonnées</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-number" id="discoveries-shared">0</span>
+                            <span class="stat-unit">découvertes</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="badges-section">
+                    <h3>Badges obtenus</h3>
+                    <div id="user-badges" class="badges-grid">
+                        <div class="badge locked">
+                            <i class="fas fa-mountain"></i>
+                            <span>Premier Sommet</span>
+                        </div>
+                        <div class="badge locked">
+                            <i class="fas fa-camera"></i>
+                            <span>Explorateur</span>
+                        </div>
+                        <div class="badge locked">
+                            <i class="fas fa-leaf"></i>
+                            <span>Ami de la Nature</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-form">
+                    <div class="form-group">
+                        <label>Nom d'utilisateur</label>
+                        <input type="text" id="username" placeholder="Votre nom de randonneur">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="votre@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Niveau d'expérience</label>
+                        <select id="experience-level">
+                            <option value="beginner">Débutant</option>
+                            <option value="intermediate">Intermédiaire</option>
+                            <option value="advanced">Avancé</option>
+                            <option value="expert">Expert</option>
+                        </select>
+                    </div>
+                    <button class="save-profile-btn" onclick="saveHikerProfile()">
+                        <i class="fas fa-save"></i>
+                        Sauvegarder le profil
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay de navigation active -->
+        <div id="active-hike-overlay" class="hike-overlay hidden">
+            <div class="hike-header">
+                <button class="stop-hike-btn" onclick="stopActiveHike()">
+                    <i class="fas fa-stop"></i>
+                </button>
+                <div class="hike-progress">
+                    <h3 id="active-trail-name">Randonnée en cours</h3>
+                    <div class="progress-stats">
+                        <span id="hike-elapsed-time">0:00</span>
+                        <span id="hike-remaining-distance">-- km restants</span>
+                    </div>
+                </div>
+                <button class="pause-hike-btn" onclick="pauseActiveHike()">
+                    <i class="fas fa-pause"></i>
+                </button>
+            </div>
+            
+            <div class="next-waypoint">
+                <div class="waypoint-icon">
+                    <i class="fas fa-location-arrow"></i>
+                </div>
+                <div class="waypoint-info">
+                    <span class="waypoint-instruction" id="next-instruction">Continuez sur le sentier</span>
+                    <span class="waypoint-distance" id="next-distance">Dans 250m</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast container -->
+        <div id="toast-container" class="toast-container"></div>
+        
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="nature-spinner">
+                <i class="fas fa-mountain"></i>
+            </div>
+            <p id="loading-text">Chargement...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
