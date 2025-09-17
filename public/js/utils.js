@@ -72,9 +72,17 @@ function loadSavedTrails() {
 
 // Menu principal
 function toggleMainMenu() {
-    // Pour l'instant, on utilise juste la navigation bottom
-    // Tu peux ajouter un menu hamburger plus tard si besoin
-    showToast('Utilisez la navigation en bas de l\'écran', 'info');
+    const menu = document.getElementById('main-menu');
+    if (menu.classList.contains('hidden')) {
+        // Fermer autres widgets
+        closeWeatherWidget();
+        closeAllSheets();
+        
+        // Ouvrir le menu
+        menu.classList.remove('hidden');
+    } else {
+        menu.classList.add('hidden');
+    }
 }
 
 // Gestion des erreurs globales

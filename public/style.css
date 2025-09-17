@@ -26,6 +26,7 @@
     
     --radius: 16px;
     --radius-large: 24px;
+    --header-height: 80px;
     --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     --transition-fast: all 0.2s ease;
 }
@@ -66,6 +67,7 @@ body {
     box-shadow: var(--shadow-nature);
     z-index: 100;
     position: relative;
+    min-height: var(--header-height);
 }
 
 .header-content {
@@ -150,6 +152,64 @@ body {
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-deep);
+}
+
+/* Menu principal déroulant */
+.main-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-large);
+    padding: 1rem;
+    min-width: 250px;
+    box-shadow: var(--shadow-deep);
+    border: 2px solid var(--border);
+    z-index: 1000;
+    transition: var(--transition);
+    transform: translateY(10px);
+    opacity: 1;
+}
+
+.main-menu.hidden {
+    transform: translateY(-10px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: left;
+    width: 100%;
+}
+
+.menu-item:hover {
+    background: var(--bg-secondary);
+    color: var(--primary-green);
+    transform: translateX(4px);
+}
+
+.menu-item i {
+    color: var(--primary-green);
+    width: 20px;
+    text-align: center;
 }
 
 /* Barre de recherche sentiers */
@@ -297,10 +357,22 @@ body {
     color: var(--accent-orange);
 }
 
+.weather-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
 .weather-temp {
     font-size: 1.5rem;
     font-weight: 800;
     color: var(--text-primary);
+}
+
+.weather-condition {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .close-weather {
@@ -319,6 +391,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .weather-item {
@@ -332,6 +405,53 @@ body {
 .weather-item i {
     color: var(--primary-green);
     width: 16px;
+}
+
+.weather-advice {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary-green);
+}
+
+.advice-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.weather-forecast h4 {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.forecast-items {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.forecast-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    min-width: 60px;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.forecast-item i {
+    color: var(--primary-green);
 }
 
 /* Panel d'informations sentier */
@@ -504,6 +624,55 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Autocomplete suggestions */
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-deep);
+    border: 2px solid var(--border);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+
+.autocomplete-suggestions.hidden {
+    display: none;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+    background: var(--bg-secondary);
+    color: var(--primary-green);
+}
+
+.suggestion-item:active {
+    background: var(--primary-green);
+    color: white;
+}
+
+/* Améliorer le positionnement relatif des inputs pour l'autocomplete */
+.input-with-icon {
+    position: relative;
 }
 
 /* Bottom sheets */
@@ -1022,7 +1191,7 @@ body {
 /* Overlay de randonnée active */
 .hike-overlay {
     position: absolute;
-    top: 0;
+    top: var(--header-height);
     left: 0;
     right: 0;
     background: linear-gradient(135deg, var(--forest-dark), var(--primary-dark));

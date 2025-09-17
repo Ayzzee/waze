@@ -7,11 +7,13 @@ router.get('/:lat/:lng', (req, res) => {
     const { lat, lng } = req.params;
     
     // Simulation météo
+    const temp = Math.floor(Math.random() * 25 + 5);
     const weatherData = {
         location: { lat: parseFloat(lat), lng: parseFloat(lng) },
         current: {
             condition: ["sunny", "cloudy", "rainy", "snowy"][Math.floor(Math.random() * 4)],
-            temperature: Math.floor(Math.random() * 25 + 5) + "°C",
+            temperature: temp + "°C",
+            feelsLike: (temp + Math.floor(Math.random() * 6 - 3)) + "°C",
             humidity: Math.floor(Math.random() * 40 + 40) + "%",
             wind: Math.floor(Math.random() * 20 + 5) + " km/h",
             visibility: Math.floor(Math.random() * 10 + 5) + " km"
