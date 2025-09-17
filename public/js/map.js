@@ -3,38 +3,26 @@
 // Initialisation de la carte simplifiée pour randonnée  
 function initializeMap() {
     try {
-        const mapContainer = document.getElementById('hike-map');
+        // Initialiser la vraie carte Leaflet
+        map = L.map('hike-map').setView([46.2276, 2.2137], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'OpenStreetMap'
+        }).addTo(map);
+        // Initialiser les couches
+        if (typeof discoveryLayer === 'undefined' || !discoveryLayer) {
+            discoveryLayer = L.layerGroup().addTo(map);
+        }
+        if (typeof routeLayer === 'undefined' || !routeLayer) {
+            routeLayer = L.layerGroup().addTo(map);
+        }
         
-        // Créer une carte simple avec focus sur les sentiers de randonnée
-        mapContainer.innerHTML = `
-            <div class="map-placeholder">
-                <div class="map-content">
-                    <div class="hiking-trails-info">
-                        <i class="fas fa-route"></i>
-                        <h3>Carte de randonnée</h3>
-                        <p>Mode randonnée activé - Affichage des sentiers</p>
-                        <div class="trail-types">
-                            <div class="trail-type">
-                                <span class="trail-color easy"></span>
-                                <span>Sentiers faciles</span>
-                            </div>
-                            <div class="trail-type">
-                                <span class="trail-color moderate"></span>
-                                <span>Sentiers modérés</span>
-                            </div>
-                            <div class="trail-type">
-                                <span class="trail-color hard"></span>
-                                <span>Sentiers difficiles</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        // Ajouter les événements de géolocalisation
+        map.on('locationfound', onLocationFound);
+        map.on('locationerror', onLocationError);
+        map.on('click', onMapClick);
         
-        // Simuler des sentiers pour démonstration
-        displaySampleTrails();
-        
+        console.log('✅ Carte Leaflet initialisée avec toutes les couches');
     } catch (error) {
         console.error('❌ Erreur initialisation carte:', error);
         const mapContainer = document.getElementById('hike-map');
@@ -66,7 +54,6 @@ function displaySampleTrails() {
         mapContent.appendChild(trailsOverlay);
     }
 }
-}
 
 function onMapClick(e) {
     // Simplified click handler for hiking map
@@ -79,8 +66,25 @@ function onMapClick(e) {
 }
 
 function onLocationFound(e) {
-    // Simplified location handling
-    console.log('Location found for hiking app');
+    userLocation = {
+        lat: e.latlng.lat,
+        lng: e.latlng.lng
+    };
+    
+    // Ajouter un marqueur pour la position de l'utilisateur
+    if (window.userLocationMarker) {
+        map.removeLayer(window.userLocationMarker);
+    }
+    
+    window.userLocationMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+        icon: L.divIcon({
+            html: '<i class="fas fa-location-arrow" style="color: #3b82f6; font-size: 16px;"></i>',
+            iconSize: [20, 20],
+            className: 'user-location-marker'
+        })
+    }).addTo(map).bindPopup('Votre position actuelle');
+    
+    console.log('✅ Position trouvée et affichée sur la carte');
     showToast('Position trouvée', 'success');
 }
 
@@ -123,18 +127,22 @@ function setupLocationTracking() {
 // Contrôles de carte
 function centerOnLocation() {
     if (userLocation) {
+        map.setView([userLocation.lat, userLocation.lng], 15);
         showToast('Carte centrée sur votre position', 'success');
         console.log('Centrage sur:', userLocation);
     } else {
-        showToast('Position non disponible', 'warning');
+        showToast('Localisation en cours...', 'info');
         // Essayer de géolocaliser
-        if ('geolocation' in navigator) {
+        if (map && map.locate) {
+            map.locate({setView: true, maxZoom: 15});
+        } else if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     userLocation = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
+                    map.setView([userLocation.lat, userLocation.lng], 15);
                     showToast('Position trouvée !', 'success');
                 },
                 () => showToast('Impossible de localiser', 'error')

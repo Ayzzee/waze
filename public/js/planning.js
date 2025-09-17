@@ -1,10 +1,43 @@
 // 🥾 Planification de randonnée
 
-// Données de villes françaises pour autocomplete
+
+// Fonction pour décoder une polyline encodée
+function decodePolyline(encoded) {
+    if (!encoded) return [];
+    
+    let points = [];
+    let index = 0, lat = 0, lng = 0;
+    
+    while (index < encoded.length) {
+        let b, shift = 0, result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        
+        let dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+        lat += dlat;
+        
+        shift = 0;
+        result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        
+        let dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+        lng += dlng;
+        
+        points.push([lng / 1e5, lat / 1e5]);
+    }
+    
+    return points;
+}
 const frenchCities = [
-    'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux', 'Lille',
-    'Rennes', 'Reims', 'Saint-Étienne', 'Toulon', 'Le Havre', 'Grenoble', 'Dijon', 'Angers', 'Nîmes', 'Villeurbanne',
-    'Pau', 'Perpignan', 'Poitiers', 'Pontoise', 'Palaiseau', 'Pantin', 'Pessac', 'Puteaux', 'Plaisir', 'Poissy'
+    "Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille",
+    "Rennes", "Reims", "Le Havre", "Saint-Étienne", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne"
 ];
 
 // Initialiser l'autocomplete sur les champs de planification
@@ -165,8 +198,11 @@ async function planCustomHike() {
 
     try {
         // Géocoder les points
+        console.log('🔍 Géocodage de:', startPoint, 'vers', endPoint);
         const startCoords = await geocodeAddress(startPoint);
         const endCoords = await geocodeAddress(endPoint);
+
+        console.log('📍 Coordonnées trouvées:', { startCoords, endCoords });
 
         if (!startCoords || !endCoords) {
             throw new Error('Impossible de localiser une des adresses');
@@ -190,38 +226,149 @@ async function planCustomHike() {
 }
 
 async function planHikingRoute(startCoords, endCoords, difficulty, maxDistance) {
-    // Simuler un routage qui suit les sentiers de randonnée
-    const distance = calculateDistance(startCoords, endCoords);
-    const elevationGain = Math.floor(Math.random() * 800 + 200);
-    const estimatedTime = calculateHikingTime(distance, elevationGain);
-    
-    // Générer des points intermédiaires qui suivent des sentiers hypothétiques
-    const waypoints = generateHikingWaypoints(startCoords, endCoords, difficulty);
-    
-    const hikeRoute = {
-        id: Date.now(),
-        start: startCoords,
-        end: endCoords,
-        distance: `${distance.toFixed(1)} km`,
-        duration: estimatedTime,
-        elevation: `+${elevationGain}m`,
-        difficulty: difficulty || 'moderate',
-        terrain: 'sentier de randonnée',
-        rating: (Math.random() * 2 + 3).toFixed(1),
-        waypoints: waypoints,
-        weather: ['sunny', 'cloudy', 'partly-cloudy'][Math.floor(Math.random() * 3)],
-        tips: [
-            'Suivez les balisages sur le sentier',
-            'Emportez suffisamment d\'eau',
-            'Vérifiez la météo avant de partir',
-            'Prévenez quelqu\'un de votre itinéraire'
-        ],
-        trailType: 'hiking', // Indique que c'est un sentier de randonnée
-        followsTrails: true // Indique que le route suit des sentiers
-    };
-    
-    hideLoading();
-    return hikeRoute;
+    try {
+        console.log('🚶 Calcul d\'itinéraire de', startCoords, 'vers', endCoords);
+        
+        // Utiliser OpenRouteService avec le profil foot-walking (plus fiable que foot-hiking)
+        const requestBody = {
+            coordinates: [
+                [startCoords.lng, startCoords.lat],
+                [endCoords.lng, endCoords.lat]
+            ],
+            format: 'geojson',
+            instructions: false,
+            preference: 'recommended'
+        };
+        
+        console.log('📤 Requête ORS:', requestBody);
+        
+        const routeResponse = await fetch(`${ORS_BASE_URL}/v2/directions/foot-walking`, {
+            method: 'POST',
+            headers: {
+                'Authorization': ORS_API_KEY,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        console.log('📥 Réponse ORS:', routeResponse.status);
+
+        if (!routeResponse.ok) {
+            const errorText = await routeResponse.text();
+            console.error('❌ Erreur ORS:', routeResponse.status, errorText);
+            throw new Error('Impossible de calculer l\'itinéraire de randonnée');
+        }
+
+        const routeData = await routeResponse.json();
+        console.log('✅ Données route reçues:', routeData);
+        
+        // OpenRouteService retourne les données dans routeData.routes ou routeData.features
+        let route;
+        if (routeData.routes && routeData.routes.length > 0) {
+            // Format standard ORS
+            route = routeData.routes[0];
+            console.log('📊 Route trouvée (format routes):', route);
+        } else if (routeData.features && routeData.features.length > 0) {
+            // Format GeoJSON
+            route = routeData.features[0];
+            console.log('📊 Route trouvée (format features):', route);
+        } else {
+            console.warn('⚠️ Aucune route trouvée dans la réponse ORS');
+            throw new Error('Aucun sentier trouvé pour cet itinéraire');
+        }
+
+        // Adapter selon le format de la réponse
+        let coordinates, properties;
+        if (route.geometry) {
+            // Format GeoJSON ou ORS avec geometry
+            if (typeof route.geometry === 'string') {
+                // Géométrie encodée (polyline) - à décoder
+                console.log('🔤 Géométrie encodée détectée');
+                coordinates = decodePolyline(route.geometry);
+            } else {
+                coordinates = route.geometry.coordinates || route.geometry;
+            }
+            properties = route.summary || route.properties || {};
+        } else if (route.coordinates) {
+            // Format avec coordonnées directes
+            coordinates = route.coordinates;
+            properties = route.summary || route.properties || {};
+        } else {
+            throw new Error('Format de route non reconnu');
+        }
+        
+        console.log('🗺️ Coordonnées extraites:', coordinates?.length, 'points');
+        console.log('📈 Propriétés:', properties);
+        
+        
+        // Convertir les coordonnées en waypoints
+        const waypoints = coordinates.map(coord => ({
+            lat: coord[1],
+            lng: coord[0]
+        }));
+
+        const hikeRoute = {
+            id: Date.now(),
+            start: startCoords,
+            end: endCoords,
+            distance: `${((properties.distance || 0) / 1000).toFixed(1)} km`,
+            duration: `${Math.round((properties.duration || 3600) / 3600)}h ${Math.round(((properties.duration || 3600) % 3600) / 60)}min`,
+            elevation: `+${Math.round(properties.ascent || 0)}m`,
+            difficulty: difficulty || 'moderate',
+            terrain: 'sentier de randonnée',
+            rating: (Math.random() * 2 + 3).toFixed(1),
+            waypoints: waypoints,
+            weather: ['sunny', 'cloudy', 'partly-cloudy'][Math.floor(Math.random() * 3)],
+            tips: [
+                'Suivez les balisages sur le sentier',
+                'Emportez suffisamment d\'eau',
+                'Vérifiez la météo avant de partir',
+                'Prévenez quelqu\'un de votre itinéraire'
+            ],
+            trailType: 'hiking',
+            followsTrails: true,
+            routeGeometry: { coordinates } // Géométrie complète du sentier
+        };
+        
+        hideLoading();
+        return hikeRoute;
+        
+    } catch (error) {
+        console.error('Erreur API OpenRouteService:', error);
+        
+        // Fallback : générer un itinéraire approximatif
+        const distance = calculateDistance(startCoords, endCoords);
+        const elevationGain = Math.floor(Math.random() * 800 + 200);
+        const estimatedTime = calculateHikingTime(distance, elevationGain);
+        
+        // Générer des points intermédiaires qui simulent un sentier
+        const waypoints = generateHikingWaypoints(startCoords, endCoords, difficulty);
+        
+        const hikeRoute = {
+            id: Date.now(),
+            start: startCoords,
+            end: endCoords,
+            distance: `${distance.toFixed(1)} km`,
+            duration: estimatedTime,
+            elevation: `+${elevationGain}m`,
+            difficulty: difficulty || 'moderate',
+            terrain: 'sentier approximatif',
+            rating: (Math.random() * 2 + 3).toFixed(1),
+            waypoints: waypoints,
+            weather: ['sunny', 'cloudy', 'partly-cloudy'][Math.floor(Math.random() * 3)],
+            tips: [
+                'Itinéraire approximatif - vérifiez sur place',
+                'Emportez suffisamment d\'eau',
+                'Vérifiez la météo avant de partir'
+            ],
+            trailType: 'approximate',
+            followsTrails: false
+        };
+        
+        hideLoading();
+        return hikeRoute;
+    }
 }
 
 function generateHikingWaypoints(start, end, difficulty) {
@@ -278,33 +425,15 @@ function calculateHikingTime(distance, elevation) {
     
     return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
 }
-                end: endCoords,
-                difficulty,
-                maxDistance: maxDistance ? parseFloat(maxDistance) : null
-            })
-        });
-
-        const result = await response.json();
-        hideLoading();
-
-        if (result.success) {
-            currentTrail = result.data;
-            displayPlannedHike(result.data);
-            showToast('Randonnée planifiée avec succès !', 'success');
-        } else {
-            showToast(result.message, 'error');
-        }
-    } catch (error) {
-        hideLoading();
-        console.error('Erreur planification:', error);
-        showToast('Erreur lors de la planification : ' + error.message, 'error');
-    }
-}
+// The following block appears to be misplaced and should be removed to fix the syntax error.
+// If this code is needed, ensure it is inside a function.
 
 async function geocodeAddress(address) {
     try {
+        console.log('🌍 Géocodage de:', address);
+        
         const response = await fetch(
-            `${ORS_BASE_URL}/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(address)}&size=1`,
+            `${ORS_BASE_URL}/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(address)}&size=1&boundary.country=FR`,
             {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
@@ -312,23 +441,28 @@ async function geocodeAddress(address) {
         );
 
         if (!response.ok) {
+            console.error('❌ Erreur géocodage HTTP:', response.status);
             throw new Error(`Erreur géocodage: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('📍 Résultat géocodage:', data);
         
         if (data.features && data.features.length > 0) {
             const coords = data.features[0].geometry.coordinates;
-            return {
+            const result = {
                 lng: coords[0],
                 lat: coords[1],
                 name: data.features[0].properties.label
             };
+            console.log('✅ Coordonnées trouvées:', result);
+            return result;
         }
         
+        console.warn('⚠️ Aucune coordonnée trouvée pour:', address);
         return null;
     } catch (error) {
-        console.error('Erreur géocodage:', error);
+        console.error('❌ Erreur géocodage:', error);
         return null;
     }
 }
