@@ -13,12 +13,7 @@ function initializeApp() {
     setupEventListeners();
     loadHikerProfile();
     
-    // Vérifier le support PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('🔧 Service Worker enregistré'))
-            .catch(err => console.log('❌ Erreur Service Worker:', err));
-    }
+    // Service worker désactivé pour le développement
 }
 
 function setupEventListeners() {
