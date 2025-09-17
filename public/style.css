@@ -58,103 +58,10 @@ body {
     overflow: hidden;
 }
 
-/* Header avec gradient nature */
-.app-header {
-    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,253,244,0.9) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: var(--shadow-nature);
-    z-index: 100;
-    position: relative;
-}
+/* Header removed for mobile optimization */
+/* .app-header styles removed */
 
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-}
-
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-    box-shadow: var(--shadow-nature);
-    animation: breathe 3s ease-in-out infinite;
-}
-
-@keyframes breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.logo-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.logo-main {
-    font-size: 1.8rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--primary-green), var(--forest-dark));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-}
-
-.logo-sub {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: -4px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.action-btn {
-    width: 48px;
-    height: 48px;
-    border: none;
-    background: var(--bg-secondary);
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition);
-    color: var(--primary-green);
-    box-shadow: var(--shadow-nature);
-    border: 2px solid transparent;
-}
-
-.action-btn:hover, .action-btn:active {
-    background: var(--primary-green);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-deep);
-}
-
-/* Barre de recherche sentiers */
-.trail-search {
-    padding: 1rem 1.5rem;
+/* Header styles removed for mobile optimization */
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     transition: var(--transition);
@@ -162,60 +69,7 @@ body {
 }
 
 .trail-search.hidden {
-    transform: translateY(-100%);
-    opacity: 0;
-    pointer-events: none;
-}
-
-.search-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.search-filters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-}
-
-.filter-select, .filter-input {
-    padding: 0.875rem 1rem;
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    background: white;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: var(--transition);
-    color: var(--text-primary);
-}
-
-.filter-select:focus, .filter-input:focus {
-    outline: none;
-    border-color: var(--primary-green);
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-}
-
-.search-trails-btn {
-    background: linear-gradient(135deg, var(--primary-green), var(--primary-dark));
-    color: white;
-    border: none;
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius);
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    box-shadow: var(--shadow-nature);
-}
-
-.search-trails-btn:active {
-    transform: scale(0.98);
-}
+/* Trail search styles removed with header */
 
 /* Section carte principale */
 .map-section {
@@ -228,6 +82,131 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1;
+}
+
+/* Styles pour carte randonnée simplifiée */
+.map-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #064e3b 0%, #059669 30%, #10b981 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.map-content {
+    text-align: center;
+    color: white;
+    z-index: 2;
+    position: relative;
+}
+
+.hiking-trails-info {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-large);
+    padding: 2rem;
+    max-width: 300px;
+}
+
+.hiking-trails-info i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-green);
+}
+
+.hiking-trails-info h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.hiking-trails-info p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.trail-types {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.trail-type {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.trail-color {
+    width: 20px;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.trail-color.easy {
+    background: #22c55e;
+}
+
+.trail-color.moderate {
+    background: #f59e0b;
+}
+
+.trail-color.hard {
+    background: #ef4444;
+}
+
+.trails-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.sample-trail {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-nature);
+    animation: trailPulse 2s ease-in-out infinite;
+}
+
+.sample-trail.easy {
+    border-left: 4px solid #22c55e;
+}
+
+.sample-trail.moderate {
+    border-left: 4px solid #f59e0b;
+}
+
+.sample-trail.hard {
+    border-left: 4px solid #ef4444;
+}
+
+@keyframes trailPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+.map-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: white;
+    font-size: 1.1rem;
+    background: var(--accent-red);
 }
 
 /* Contrôles de carte nature */
@@ -581,6 +560,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    position: relative;
 }
 
 .form-group label {
@@ -659,6 +639,46 @@ body {
     gap: 0.75rem;
     box-shadow: var(--shadow-nature);
     margin-top: 1rem;
+}
+
+/* Autocomplete suggestions */
+.suggestions-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 48px;
+    background: white;
+    border: 2px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow-nature);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.suggestion-item:hover {
+    background: var(--bg-secondary);
+    color: var(--primary-green);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item i {
+    color: var(--primary-green);
+    font-size: 0.9rem;
 }
 
 /* Types de découvertes */

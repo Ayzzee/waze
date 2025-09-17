@@ -6,12 +6,23 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     initializeMap();
     loadInitialData();
-    setupLocationTracking();
+    
+    // Démarrer le tracking de localisation après un délai pour s'assurer que tout est chargé
+    setTimeout(() => {
+        if (typeof setupLocationTracking === 'function') {
+            setupLocationTracking();
+        }
+    }, 1000);
 });
 
 function initializeApp() {
     setupEventListeners();
     loadHikerProfile();
+    
+    // Initialiser l'autocomplete pour la planification
+    setTimeout(() => {
+        initializePlanningSuggestions();
+    }, 500);
     
     // Vérifier le support PWA
     if ('serviceWorker' in navigator) {
@@ -25,19 +36,6 @@ function setupEventListeners() {
     // Gestion des clics globaux
     document.addEventListener('click', handleGlobalClick);
     document.addEventListener('keydown', handleKeyDown);
-    
-    // Événements de géolocalisation
-    if ('geolocation' in navigator) {
-        navigator.geolocation.watchPosition(
-            updateUserLocation,
-            handleLocationError,
-            {
-                enableHighAccuracy: true,
-                timeout: 30000,
-                maximumAge: 60000
-            }
-        );
-    }
     
     // Gestion des notifications push
     if ('Notification' in window && Notification.permission === 'default') {

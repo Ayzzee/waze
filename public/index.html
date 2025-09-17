@@ -7,65 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Use local map implementation instead of Leaflet CDN -->
     <meta name="theme-color" content="#10b981">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="hike-app">
-        <!-- Header avec gradient nature -->
-        <header class="app-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo-icon">
-                        <i class="fas fa-mountain"></i>
-                    </div>
-                    <div class="logo-text">
-                        <span class="logo-main">HiKe</span>
-                        <span class="logo-sub">Explore & Discover</span>
-                    </div>
-                </div>
-                
-                <div class="header-actions">
-                    <button class="action-btn weather-btn" onclick="checkWeather()">
-                        <i class="fas fa-cloud-sun"></i>
-                    </button>
-                    <button class="action-btn search-btn" onclick="toggleTrailSearch()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    <button class="action-btn menu-btn" onclick="toggleMainMenu()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Barre de recherche de sentiers -->
-            <div id="trail-search" class="trail-search hidden">
-                <div class="search-container">
-                    <div class="search-filters">
-                        <select id="difficulty-filter" class="filter-select">
-                            <option value="">Toutes difficultés</option>
-                            <option value="easy">Facile 🟢</option>
-                            <option value="moderate">Modéré 🟡</option>
-                            <option value="hard">Difficile 🔴</option>
-                        </select>
-                        <select id="region-filter" class="filter-select">
-                            <option value="">Toutes régions</option>
-                            <option value="alpes">Alpes</option>
-                            <option value="pyrénées">Pyrénées</option>
-                            <option value="vosges">Vosges</option>
-                            <option value="corse">Corse</option>
-                        </select>
-                        <input type="number" id="distance-filter" placeholder="Distance max (km)" class="filter-input">
-                    </div>
-                    <button class="search-trails-btn" onclick="searchTrails()">
-                        <i class="fas fa-search"></i>
-                        Rechercher sentiers
-                    </button>
-                </div>
-            </div>
-        </header>
+        <!-- Header removed for mobile optimization -->
 
         <!-- Carte interactive principale -->
         <main class="map-section">
