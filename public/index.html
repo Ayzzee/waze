@@ -14,94 +14,48 @@
 </head>
 <body>
     <div class="hike-app">
-        <!-- Header avec gradient nature -->
-        <header class="app-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo-icon">
-                        <i class="fas fa-mountain"></i>
-                    </div>
-                    <div class="logo-text">
-                        <span class="logo-main">HiKe</span>
-                        <span class="logo-sub">Explore & Discover</span>
-                    </div>
-                </div>
-                
-                <div class="header-actions">
-                    <button class="action-btn weather-btn" onclick="checkWeather()">
-                        <i class="fas fa-cloud-sun"></i>
-                    </button>
-                    <button class="action-btn search-btn" onclick="toggleTrailSearch()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    <button class="action-btn menu-btn" onclick="toggleMainMenu()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
-                
-                <!-- Menu déroulant -->
-                <div id="main-menu" class="main-menu hidden">
-                    <div class="menu-items">
-                        <button class="menu-item" onclick="switchMainTab('explore'); toggleMainMenu();">
-                            <i class="fas fa-compass"></i>
-                            <span>Explorer la carte</span>
-                        </button>
-                        <button class="menu-item" onclick="switchMainTab('plan'); toggleMainMenu();">
-                            <i class="fas fa-route"></i>
-                            <span>Planifier une randonnée</span>
-                        </button>
-                        <button class="menu-item" onclick="switchMainTab('discover'); toggleMainMenu();">
-                            <i class="fas fa-binoculars"></i>
-                            <span>Mes découvertes</span>
-                        </button>
-                        <button class="menu-item" onclick="switchMainTab('profile'); toggleMainMenu();">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Mon profil</span>
-                        </button>
-                        <button class="menu-item" onclick="toggleMapLayers(); toggleMainMenu();">
-                            <i class="fas fa-layer-group"></i>
-                            <span>Styles de carte</span>
-                        </button>
-                        <button class="menu-item" onclick="showNearbyTrails(); toggleMainMenu();">
-                            <i class="fas fa-map-signs"></i>
-                            <span>Sentiers proches</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+
+        <!-- Carte interactive principale -->
+        <main class="map-section">
+            <div id="hike-map" class="interactive-map"></div>
             
-            <!-- Barre de recherche de sentiers -->
-            <div id="trail-search" class="trail-search hidden">
-                <div class="search-container">
-                    <div class="search-filters">
-                        <select id="difficulty-filter" class="filter-select">
+            <!-- Bouton de recherche mobile -->
+            <button class="search-control-btn" onclick="toggleMobileSearch()" title="Rechercher sentiers">
+                <i class="fas fa-search"></i>
+            </button>
+            
+            <!-- Panneau de recherche mobile -->
+            <div id="mobile-search-panel" class="mobile-search-panel hidden">
+                <div class="mobile-search-content">
+                    <div class="mobile-search-filters">
+                        <select id="mobile-difficulty-filter" class="mobile-filter-input">
                             <option value="">Toutes difficultés</option>
                             <option value="easy">Facile 🟢</option>
                             <option value="moderate">Modéré 🟡</option>
                             <option value="hard">Difficile 🔴</option>
                         </select>
-                        <select id="region-filter" class="filter-select">
+                        <select id="mobile-region-filter" class="mobile-filter-input">
                             <option value="">Toutes régions</option>
                             <option value="alpes">Alpes</option>
                             <option value="pyrénées">Pyrénées</option>
                             <option value="vosges">Vosges</option>
                             <option value="corse">Corse</option>
                         </select>
-                        <input type="number" id="distance-filter" placeholder="Distance max (km)" class="filter-input">
                     </div>
-                    <button class="search-trails-btn" onclick="searchTrails()">
-                        <i class="fas fa-search"></i>
-                        Rechercher sentiers
-                    </button>
+                    <input type="number" id="mobile-distance-filter" placeholder="Distance max (km)" class="mobile-filter-input">
+                    <div class="mobile-search-actions">
+                        <button class="mobile-search-btn" onclick="searchTrailsMobile()">
+                            <i class="fas fa-search"></i>
+                            Rechercher
+                        </button>
+                        <button class="mobile-close-btn" onclick="toggleMobileSearch()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </header>
-
-        <!-- Carte interactive principale -->
-        <main class="map-section">
-            <div id="hike-map" class="interactive-map"></div>
             
-            <!-- Contrôles de carte naturels -->
+            <!-- Contrôles de carte optimisés pour mobile -->
             <div class="map-controls">
                 <button class="map-control-btn location-btn" onclick="centerOnLocation()" title="Ma position">
                     <i class="fas fa-location-arrow"></i>

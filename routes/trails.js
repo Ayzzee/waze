@@ -64,28 +64,45 @@ router.post('/plan', (req, res) => {
     const distance = Math.random() * 15 + 2;
     const elevationGain = Math.floor(Math.random() * 800 + 100);
     
-    // Générer des waypoints pour un chemin de randonnée réaliste
-    const waypointsCount = Math.floor(distance / 2) + 3; // Plus de waypoints pour des distances plus longues
+    // Génération améliorée de waypoints pour un chemin de randonnée réaliste
+    const waypointsCount = Math.floor(distance / 1.5) + 4; // Plus de waypoints pour plus de réalisme
     const waypoints = [start];
     
     // Créer des waypoints intermédiaires qui suivent un chemin plus naturel
     for (let i = 1; i < waypointsCount - 1; i++) {
         const progress = i / (waypointsCount - 1);
         
-        // Base progression linéaire
+        // Base progression avec courbe naturelle (s-curve)
+        const curvedProgress = 0.5 * (1 + Math.sin(Math.PI * (progress - 0.5)));
         const baseLat = start.lat + (end.lat - start.lat) * progress;
         const baseLng = start.lng + (end.lng - start.lng) * progress;
         
-        // Ajouter de la variation pour simuler un chemin de randonnée
-        const variation = 0.005; // Variation en degrés
-        const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * variation;
+        // Variation en fonction du terrain et de la progression
+        let variationRadius;
+        if (progress < 0.3 || progress > 0.7) {
+            // Début et fin : plus près des sentiers principaux
+            variationRadius = 0.002;
+        } else {
+            // Milieu : exploration plus libre
+            variationRadius = 0.005;
+        }
+        
+        // Ajouter un facteur d'élévation pour simuler le suivi des courbes de niveau
+        const elevationFactor = Math.sin(progress * Math.PI * 2) * variationRadius * 0.5;
+        
+        // Créer une variation plus naturelle qui évite les lignes droites
+        const angle1 = progress * Math.PI * 3; // Oscillation principale
+        const angle2 = progress * Math.PI * 7; // Oscillation secondaire pour la rugosité
+        
+        const offsetLat = Math.cos(angle1) * variationRadius + Math.sin(angle2) * variationRadius * 0.3;
+        const offsetLng = Math.sin(angle1) * variationRadius + Math.cos(angle2) * variationRadius * 0.3;
         
         const waypoint = {
-            lat: baseLat + Math.cos(angle) * radius,
-            lng: baseLng + Math.sin(angle) * radius,
-            name: getWaypointName(i, progress),
-            elevation: Math.floor(progress * elevationGain * (0.5 + Math.random()))
+            lat: baseLat + offsetLat + elevationFactor,
+            lng: baseLng + offsetLng,
+            name: getRealisticWaypointName(i, progress, distance),
+            elevation: Math.floor(start.elevation || 0 + progress * elevationGain * (0.7 + Math.random() * 0.6)),
+            terrain: getTerrainType(progress, distance)
         };
         
         waypoints.push(waypoint);
@@ -126,6 +143,84 @@ function getWaypointName(index, progress) {
     if (progress > 0.8) return "Approche finale";
     
     return names[index % names.length];
+}
+
+function getRealisticWaypointName(index, progress, distance) {
+    // Noms basés sur la progression et la distance
+    const startNames = [
+        "Départ du sentier",
+        "Panneau d'information",
+        "Parking randonneurs"
+    ];
+    
+    const earlyNames = [
+        "Premier lacet",
+        "Sortie de forêt",
+        "Croisement balisé",
+        "Passerelle en bois",
+        "Première montée"
+    ];
+    
+    const midNames = [
+        "Point de vue panoramique",
+        "Refuge de montagne",
+        "Col intermédiaire",
+        "Source naturelle",
+        "Plateau herbeux",
+        "Crête rocheuse",
+        "Vallée cachée",
+        "Cascades",
+        "Lac de montagne",
+        "Cirque glaciaire"
+    ];
+    
+    const lateNames = [
+        "Dernière montée",
+        "Approche du sommet",
+        "Crête finale",
+        "Descente technique"
+    ];
+    
+    const endNames = [
+        "Arrivée",
+        "Sommet",
+        "Point culminant"
+    ];
+    
+    if (progress < 0.1) return startNames[index % startNames.length];
+    if (progress < 0.3) return earlyNames[index % earlyNames.length];
+    if (progress < 0.7) return midNames[index % midNames.length];
+    if (progress < 0.9) return lateNames[index % lateNames.length];
+    return endNames[index % endNames.length];
+}
+
+function getTerrainType(progress, distance) {
+    const terrainTypes = [];
+    
+    // Début : souvent plus facile
+    if (progress < 0.3) {
+        terrainTypes.push("sentier", "forêt", "chemin");
+    }
+    
+    // Milieu : plus varié selon la distance
+    if (progress >= 0.3 && progress <= 0.7) {
+        if (distance > 8) {
+            terrainTypes.push("rocher", "crête", "col", "haute_montagne");
+        } else {
+            terrainTypes.push("prairie", "colline", "sous_bois");
+        }
+    }
+    
+    // Fin : dépend du type de randonnée
+    if (progress > 0.7) {
+        if (distance > 10) {
+            terrainTypes.push("sommet", "arête", "rocher");
+        } else {
+            terrainTypes.push("retour", "descente", "sentier");
+        }
+    }
+    
+    return terrainTypes[Math.floor(Math.random() * terrainTypes.length)] || "sentier";
 }
 
 function generateHikingTips(distance, elevation, difficulty) {

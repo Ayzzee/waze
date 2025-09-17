@@ -5,6 +5,44 @@ function toggleTrailSearch() {
     searchBar.classList.toggle('hidden');
 }
 
+// Fonction pour la recherche mobile
+function toggleMobileSearch() {
+    const searchPanel = document.getElementById('mobile-search-panel');
+    searchPanel.classList.toggle('hidden');
+}
+
+async function searchTrailsMobile() {
+    const difficulty = document.getElementById('mobile-difficulty-filter').value;
+    const region = document.getElementById('mobile-region-filter').value;
+    const distance = document.getElementById('mobile-distance-filter').value;
+    
+    showLoading('Recherche de sentiers...');
+    
+    try {
+        const params = new URLSearchParams();
+        if (difficulty) params.append('difficulty', difficulty);
+        if (region) params.append('region', region);
+        if (distance) params.append('distance', distance);
+        
+        const response = await fetch(`${API_BASE}/trails?${params}`);
+        const result = await response.json();
+        
+        hideLoading();
+        
+        if (result.success) {
+            displayTrailsOnMap(result.data);
+            showToast(`${result.total} sentier(s) trouvé(s)`, 'success');
+            toggleMobileSearch(); // Fermer la recherche
+        } else {
+            showToast('Aucun sentier trouvé', 'warning');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erreur recherche sentiers:', error);
+        showToast('Erreur lors de la recherche', 'error');
+    }
+}
+
 async function searchTrails() {
     const difficulty = document.getElementById('difficulty-filter').value;
     const region = document.getElementById('region-filter').value;
@@ -50,10 +88,11 @@ function displayTrailsOnMap(trails) {
         markersLayer.addLayer(userMarker);
     }
     
-    // Ajouter les sentiers
+    // Ajouter les sentiers avec tracés réalistes
     trails.forEach(trail => {
         const difficultyColor = getDifficultyColor(trail.difficulty);
         
+        // Créer le marqueur de départ
         const trailIcon = L.divIcon({
             html: `
                 <div class="trail-marker start" style="background: ${difficultyColor}">
@@ -93,6 +132,11 @@ function displayTrailsOnMap(trails) {
         
         // Stocker les données du sentier
         marker.trailData = trail;
+        
+        // Ajouter le tracé réaliste du sentier si les waypoints existent
+        if (trail.waypoints && trail.waypoints.length > 1) {
+            drawRealisticTrailRoute(trail, difficultyColor);
+        }
     });
     
     // Ajuster la vue si des sentiers sont trouvés
@@ -117,6 +161,71 @@ function getDifficultyText(difficulty) {
         case 'moderate': return 'Modéré 🟡';
         case 'hard': return 'Difficile 🔴';
         default: return 'Non défini';
+    }
+}
+
+function drawRealisticTrailRoute(trail, color) {
+    // Créer une ligne avec les waypoints
+    const waypoints = trail.waypoints.map(wp => [wp.lat, wp.lng]);
+    
+    // Style du tracé selon la difficulté
+    const routeStyle = {
+        color: color,
+        weight: getDifficultyWeight(trail.difficulty),
+        opacity: 0.8,
+        dashArray: getDifficultyDash(trail.difficulty),
+        className: `trail-route ${trail.difficulty}`
+    };
+    
+    // Ajouter la ligne à la carte
+    const trailRoute = L.polyline(waypoints, routeStyle)
+        .addTo(routeLayer)
+        .bindTooltip(`${trail.name} - ${trail.distance}`, {
+            permanent: false,
+            direction: 'center',
+            className: 'trail-tooltip'
+        });
+    
+    // Ajouter des marqueurs pour les waypoints importants
+    trail.waypoints.forEach((waypoint, index) => {
+        if (index === 0 || index === trail.waypoints.length - 1) return; // Skip start/end
+        
+        // Marquer seulement certains waypoints importants
+        if (waypoint.name.includes('Point de vue') || waypoint.name.includes('Col') || 
+            waypoint.name.includes('Refuge') || waypoint.name.includes('Sommet')) {
+            
+            const waypointIcon = L.divIcon({
+                html: `<div class="waypoint-marker" style="background: ${color}">
+                         <i class="fas fa-map-pin"></i>
+                       </div>`,
+                iconSize: [16, 16],
+                className: 'waypoint-icon'
+            });
+            
+            L.marker([waypoint.lat, waypoint.lng], {icon: waypointIcon})
+                .addTo(markersLayer)
+                .bindTooltip(`${waypoint.name}<br>Alt: ${waypoint.elevation}m`, {
+                    className: 'waypoint-tooltip'
+                });
+        }
+    });
+}
+
+function getDifficultyWeight(difficulty) {
+    switch(difficulty) {
+        case 'easy': return 4;
+        case 'moderate': return 5;
+        case 'hard': return 6;
+        default: return 4;
+    }
+}
+
+function getDifficultyDash(difficulty) {
+    switch(difficulty) {
+        case 'easy': return null; // Ligne continue
+        case 'moderate': return '10, 5'; // Tirets
+        case 'hard': return '5, 5'; // Pointillés
+        default: return null;
     }
 }
 
