@@ -60,33 +60,95 @@ router.post('/plan', (req, res) => {
         });
     }
 
-    // Simulation de planification de randonnée
+    // Simulation de planification de randonnée avec chemin réaliste
+    const distance = Math.random() * 15 + 2;
+    const elevationGain = Math.floor(Math.random() * 800 + 100);
+    
+    // Générer des waypoints pour un chemin de randonnée réaliste
+    const waypointsCount = Math.floor(distance / 2) + 3; // Plus de waypoints pour des distances plus longues
+    const waypoints = [start];
+    
+    // Créer des waypoints intermédiaires qui suivent un chemin plus naturel
+    for (let i = 1; i < waypointsCount - 1; i++) {
+        const progress = i / (waypointsCount - 1);
+        
+        // Base progression linéaire
+        const baseLat = start.lat + (end.lat - start.lat) * progress;
+        const baseLng = start.lng + (end.lng - start.lng) * progress;
+        
+        // Ajouter de la variation pour simuler un chemin de randonnée
+        const variation = 0.005; // Variation en degrés
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * variation;
+        
+        const waypoint = {
+            lat: baseLat + Math.cos(angle) * radius,
+            lng: baseLng + Math.sin(angle) * radius,
+            name: getWaypointName(i, progress),
+            elevation: Math.floor(progress * elevationGain * (0.5 + Math.random()))
+        };
+        
+        waypoints.push(waypoint);
+    }
+    
+    waypoints.push(end);
+    
     const plannedHike = {
         id: Date.now(),
         start,
         end,
-        distance: `${(Math.random() * 15 + 2).toFixed(1)} km`,
-        duration: `${Math.floor(Math.random() * 5 + 1)}h ${Math.floor(Math.random() * 60)}min`,
-        elevation: `+${Math.floor(Math.random() * 800 + 100)}m`,
+        distance: `${distance.toFixed(1)} km`,
+        duration: `${Math.floor(distance / 4)}h ${Math.floor((distance % 4) * 15)}min`,
+        elevation: `+${elevationGain}m`,
         difficulty: difficulty || ["easy", "moderate", "hard"][Math.floor(Math.random() * 3)],
         terrain: ["sentier", "rocher", "forêt"][Math.floor(Math.random() * 3)],
         rating: (Math.random() * 2 + 3).toFixed(1),
-        waypoints: [
-            start,
-            { 
-                lat: (start.lat + end.lat) / 2 + (Math.random() - 0.5) * 0.01, 
-                lng: (start.lng + end.lng) / 2 + (Math.random() - 0.5) * 0.01,
-                name: "Point de passage"
-            },
-            end
-        ],
+        waypoints,
         weather: ["sunny", "cloudy", "rainy"][Math.floor(Math.random() * 3)],
-        tips: [
-            "Emportez suffisamment d'eau",
-            "Vérifiez la météo avant de partir",
-            "Prévenez quelqu'un de votre itinéraire"
-        ]
+        tips: generateHikingTips(distance, elevationGain, difficulty)
     };
+
+function getWaypointName(index, progress) {
+    const names = [
+        "Croisement de sentiers",
+        "Point de vue",
+        "Source d'eau",
+        "Refuge forestier",
+        "Col de montagne",
+        "Clairière",
+        "Pont de randonnée",
+        "Plateau rocheux",
+        "Forêt dense",
+        "Prairie alpine"
+    ];
+    
+    if (progress < 0.2) return "Début de sentier";
+    if (progress > 0.8) return "Approche finale";
+    
+    return names[index % names.length];
+}
+
+function generateHikingTips(distance, elevation, difficulty) {
+    const tips = [
+        "Emportez suffisamment d'eau (1L par 10km)",
+        "Vérifiez la météo avant de partir",
+        "Prévenez quelqu'un de votre itinéraire"
+    ];
+    
+    if (distance > 10) {
+        tips.push("Prévoyez des collations énergétiques");
+    }
+    
+    if (elevation > 500) {
+        tips.push("Attention aux changements d'altitude");
+    }
+    
+    if (difficulty === "hard") {
+        tips.push("Équipement de randonnée spécialisé recommandé");
+    }
+    
+    return tips;
+}
 
     res.json({
         success: true,

@@ -55,6 +55,12 @@ function handleGlobalClick(e) {
     if (!e.target.closest('.weather-widget') && !e.target.closest('.weather-btn')) {
         closeWeatherWidget();
     }
+    
+    // Fermer le menu principal
+    if (!e.target.closest('.main-menu') && !e.target.closest('.menu-btn')) {
+        const menu = document.getElementById('main-menu');
+        if (menu) menu.classList.add('hidden');
+    }
 }
 
 function handleKeyDown(e) {
@@ -62,5 +68,7 @@ function handleKeyDown(e) {
         closeAllSheets();
         closeWeatherWidget();
         closeTrailPanel();
+        const menu = document.getElementById('main-menu');
+        if (menu) menu.classList.add('hidden');
     }
 }
