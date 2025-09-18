@@ -1,3 +1,32 @@
+.leaflet-marker-icon, .leaflet-interactive, .leaflet-overlay-pane, .leaflet-marker-shadow {
+    z-index: 2000 !important;
+}
+.user-location-marker, .leaflet-marker-icon.user-location-marker {
+    z-index: 3000 !important;
+}
+.user-location-marker {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50%;
+    background: #3b82f6 !important;
+    box-shadow: 0 0 8px #3b82f6aa;
+    border: 2px solid #fff;
+    display: block;
+    z-index: 1000;
+}
+/* Marqueur de position utilisateur (petit point bleu) */
+.user-location-marker {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    box-shadow: 0 0 8px #3b82f6aa;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
 /* Variables CSS pour thème nature */
 :root {
     --primary-green: #10b981;

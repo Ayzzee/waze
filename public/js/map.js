@@ -76,13 +76,22 @@ function onLocationFound(e) {
         map.removeLayer(window.userLocationMarker);
     }
     
-    window.userLocationMarker = L.marker([e.latlng.lat, e.latlng.lng], {
-        icon: L.divIcon({
-            html: '<i class="fas fa-location-arrow" style="color: #3b82f6; font-size: 16px;"></i>',
-            iconSize: [20, 20],
-            className: 'user-location-marker'
-        })
+    window.userLocationMarker = L.circle([e.latlng.lat, e.latlng.lng], {
+        radius: 10, // Réduction du rayon pour un cercle plus petit
+        color: '#2563eb',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.8, // Maintenir une bonne visibilité
+        weight: 3 // Épaisseur du contour ajustée
     }).addTo(map).bindPopup('Votre position actuelle');
+
+    // Supprimer l'ancien marqueur icône s'il existe
+    if (window.userLocationIconMarker) {
+        map.removeLayer(window.userLocationIconMarker);
+        window.userLocationIconMarker = null;
+    }
+    
+    console.log('📍 Position détectée :', e.latlng.lat, e.latlng.lng);
+    console.log('🗑️ Suppression des anciens marqueurs si existants');
     
     console.log('✅ Position trouvée et affichée sur la carte');
     showToast('Position trouvée', 'success');
@@ -104,6 +113,9 @@ function updateUserLocation(position) {
     if (activeHike && currentTrail) {
         updateHikeProgress();
     }
+    
+    // Forcer l'appel de onLocationFound pour afficher le cercle bleu
+    onLocationFound({ latlng: { lat: userLocation.lat, lng: userLocation.lng } });
 }
 
 function handleLocationError(error) {
@@ -127,14 +139,14 @@ function setupLocationTracking() {
 // Contrôles de carte
 function centerOnLocation() {
     if (userLocation) {
-        map.setView([userLocation.lat, userLocation.lng], 15);
-        showToast('Carte centrée sur votre position', 'success');
+        map.setView([userLocation.lat, userLocation.lng], 18); // Augmenter le zoom à 18 pour un meilleur focus
+        // showToast('Carte centrée sur votre position', 'success');
         console.log('Centrage sur:', userLocation);
     } else {
         showToast('Localisation en cours...', 'info');
         // Essayer de géolocaliser
         if (map && map.locate) {
-            map.locate({setView: true, maxZoom: 15});
+            map.locate({setView: true, maxZoom: 18}); // Augmenter le zoom pour un meilleur focus
         } else if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {

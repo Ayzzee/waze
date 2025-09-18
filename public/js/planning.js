@@ -35,6 +35,7 @@ function decodePolyline(encoded) {
     
     return points;
 }
+
 const frenchCities = [
     "Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille",
     "Rennes", "Reims", "Le Havre", "Saint-Étienne", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne"
@@ -60,18 +61,35 @@ function setupAutocomplete(input, suggestionId) {
     suggestionsContainer.className = 'suggestions-container hidden';
     input.parentNode.appendChild(suggestionsContainer);
     
-    input.addEventListener('input', function() {
-        const query = this.value.trim().toLowerCase();
+    input.addEventListener('input', async function() {
+        const query = this.value.trim();
         if (query.length < 2) {
             hideSuggestions(suggestionId);
             return;
         }
-        
-        const matches = frenchCities.filter(city => 
-            city.toLowerCase().startsWith(query)
-        ).slice(0, 5);
-        
-        displaySuggestions(matches, suggestionId, input);
+        // Appel à l'API OpenRouteService Autocomplete
+        try {
+            const response = await fetch(
+                `${ORS_BASE_URL}/geocode/autocomplete?api_key=${ORS_API_KEY}&text=${encodeURIComponent(query)}&boundary.country=FR&size=5`,
+                {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                const suggestions = (data.features || []).map(f => ({
+                    label: f.properties.label,
+                    coords: f.geometry.coordinates
+                }));
+                displaySuggestionsORS(suggestions, suggestionId, input);
+            } else {
+                hideSuggestions(suggestionId);
+            }
+        } catch (e) {
+            console.error('Erreur autocomplete ORS:', e);
+            hideSuggestions(suggestionId);
+        }
     });
     
     input.addEventListener('blur', function() {
@@ -81,21 +99,30 @@ function setupAutocomplete(input, suggestionId) {
 }
 
 function displaySuggestions(cities, containerId, input) {
+    // ...existing code...
+}
+
+// Nouvelle fonction pour suggestions ORS
+function displaySuggestionsORS(suggestions, containerId, input) {
     const container = document.getElementById(containerId);
-    
-    if (cities.length === 0) {
+    if (!suggestions || suggestions.length === 0) {
         hideSuggestions(containerId);
         return;
     }
-    
-    container.innerHTML = cities.map(city => `
-        <div class="suggestion-item" onclick="selectSuggestion('${city}', '${input.id}', '${containerId}')">
+    container.innerHTML = suggestions.map(s => `
+        <div class="suggestion-item" onclick="selectSuggestionORS('${s.label.replace(/'/g, "&#39;")}', '${input.id}', '${containerId}', ${s.coords[1]}, ${s.coords[0]})">
             <i class="fas fa-map-marker-alt"></i>
-            <span>${city}</span>
+            <span>${s.label}</span>
         </div>
     `).join('');
-    
     container.classList.remove('hidden');
+}
+
+function selectSuggestionORS(label, inputId, containerId, lat, lng) {
+    document.getElementById(inputId).value = label;
+    document.getElementById(inputId).dataset.lat = lat;
+    document.getElementById(inputId).dataset.lng = lng;
+    hideSuggestions(containerId);
 }
 
 function selectSuggestion(city, inputId, containerId) {
@@ -112,7 +139,8 @@ function hideSuggestions(containerId) {
 
 function getCurrentLocationForPlanning(inputType) {
     if (!navigator.geolocation) {
-        showToast('Géolocalisation non supportée', 'error');
+        // Désactiver les notifications toast
+        // showToast('Géolocalisation non supportée', 'error');
         return;
     }
 
@@ -122,6 +150,41 @@ function getCurrentLocationForPlanning(inputType) {
         async (position) => {
             hideLoading();
             const {latitude, longitude} = position.coords;
+            
+            // Ajouter un marqueur sur la carte pour la position actuelle
+            if (window.map) {
+                console.log('🗺️ Map disponible, ajout du marqueur de position');
+                // Supprimer l'ancien marqueur s'il existe
+                if (window.userLocationMarker) {
+                    map.removeLayer(window.userLocationMarker);
+                    console.log('📍 Ancien marqueur supprimé');
+                }
+                if (window.userLocationIconMarker) {
+                    map.removeLayer(window.userLocationIconMarker);
+                }
+                
+                // Créer seulement le cercle bleu pour la position utilisateur
+                window.userLocationMarker = L.circle([latitude, longitude], {
+                    radius: 25, // Augmenter le rayon pour plus de visibilité
+                    color: '#2563eb',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.8, // Légèrement plus transparent
+                    weight: 5 // Épaisseur du contour augmentée
+                }).addTo(map).bindPopup('Votre position actuelle');
+                
+                console.log('🔵 Cercle bleu ajouté à la position:', latitude, longitude);
+                
+                // Centrer la carte sur la position
+                map.setView([latitude, longitude], 15);
+                
+                // Mettre à jour la variable globale userLocation
+                window.userLocation = {
+                    lat: latitude,
+                    lng: longitude
+                };
+            } else {
+                console.error('❌ Map non disponible, impossible d\'ajouter le marqueur');
+            }
             
             try {
                 // Géocodage inverse avec OpenRouteService

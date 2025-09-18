@@ -12,7 +12,8 @@ function selectDiscoveryType(type) {
     // Afficher le formulaire
     document.getElementById('discovery-form').classList.remove('hidden');
     
-    showToast(`Mode ${discoveryTypes[type].name} activé - Touchez la carte pour partager !`, 'info');
+    // Désactiver les notifications toast
+    // showToast(`Mode ${discoveryTypes[type].name} activé - Touchez la carte pour partager !`, 'info');
 }
 
 async function shareDiscovery() {

@@ -2,7 +2,8 @@
 
 function startHike() {
     if (!currentTrail) {
-        showToast('Aucun sentier sélectionné', 'error');
+        // Désactiver les notifications toast
+        // showToast('Aucun sentier sélectionné', 'error');
         return;
     }
     
